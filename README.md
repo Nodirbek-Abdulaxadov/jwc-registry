@@ -52,7 +52,9 @@ an in-memory state — no Postgres required.
 2. Register an OAuth client at Google Cloud Console; set the redirect
    URI to `https://<your-host>/api/v1/auth/google/callback`.
 3. `docker compose -f docker-compose.yml up -d registry`.
-4. Front with nginx + Let's Encrypt at `jwc-registry.1kb.uz`.
+4. Deploy via `musanna-soft/k8s-gitops` (apps/jwc-registry/) — ArgoCD
+   syncs into the `jwc` namespace and fronts `registry-jwc.1kb.uz`
+   via the cluster's nginx ingress + cert-manager.
 
 ## Schema
 

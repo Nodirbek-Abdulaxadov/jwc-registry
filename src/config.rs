@@ -21,7 +21,7 @@ pub struct Config {
     /// Google OAuth client secret.
     pub google_client_secret: String,
     /// Full callback URL registered with Google (e.g.
-    /// `https://jwc-registry.1kb.uz/api/v1/auth/google/callback`).
+    /// `https://registry-jwc.1kb.uz/api/v1/auth/google/callback`).
     pub google_redirect_uri: String,
     /// HMAC secret used to sign session JWTs.
     pub jwt_secret: String,

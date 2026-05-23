@@ -12,7 +12,7 @@ Sprint-by-sprint plan that grew out of the jwc-lang Sprint 9-11
 | R3 | Package model + upload/download/list/delete | ✅ | Postgres schema, blob store, multipart upload, owner-only delete. |
 | R4 | jwc-lang client integration (`jwc publish` / `jwc login`) | ⬜ | Wire `jwc-lang/src/cmd/pkg.rs` to the new endpoints; ship `~/.jwc/credentials.json`. |
 | R5 | Operations (rate limit, OTel, backup) | ⬜ | `governor` per-IP, `tracing-opentelemetry`, pg-dump cron, Grafana board. |
-| R6 | Production deploy on jwc-registry.1kb.uz | ⬜ | VPS provision, nginx + Let's Encrypt, Cloudflare DNS, systemd unit. |
+| R6 | Production deploy on registry-jwc.1kb.uz | ⏳ | Deployed via musanna-soft/k8s-gitops (apps/jwc-registry) + ArgoCD; DNS pointing to cluster ingress, Let's Encrypt via cert-manager. |
 
 ## Why Google-only auth (v1)
 
