@@ -62,6 +62,9 @@ pub async fn login(State(state): State<AppState>) -> Response {
 #[derive(Debug, Deserialize)]
 pub struct CallbackParams {
     pub code: String,
+    /// `?format=json` — CLI flow. Omitted = browser flow (redirect to /).
+    #[serde(default)]
+    pub format: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -78,22 +81,31 @@ pub struct PublicUser {
 }
 
 /// `GET /api/v1/auth/google/callback?code=...` — exchange + upsert + issue JWT.
+///
+/// Default (browser) flow: redirects to `/?token=<jwt>` so the SPA at the
+/// root stashes it in localStorage. Pass `?format=json` to receive the
+/// `{token, user}` body verbatim (used by `jwc login` from the CLI).
 pub async fn callback(
     State(state): State<AppState>,
     Query(params): Query<CallbackParams>,
-) -> Result<Json<LoginResponse>, AuthError> {
+) -> Result<Response, AuthError> {
     let token = exchange_code_for_token(&state, &params.code).await?;
     let profile = fetch_google_profile(&token).await?;
     let user = upsert_user(&state, &profile).await?;
     let jwt = issue_jwt(&state, &user)?;
-    Ok(Json(LoginResponse {
-        token: jwt,
+    let body = LoginResponse {
+        token: jwt.clone(),
         user: PublicUser {
             id: user.id,
             email: user.email,
             name: user.name,
         },
-    }))
+    };
+    if params.format.as_deref() == Some("json") {
+        return Ok(Json(body).into_response());
+    }
+    // Browser flow: hand the token to the SPA via `?token=...`.
+    Ok(Redirect::to(&format!("/?token={}", urlencode(&jwt))).into_response())
 }
 
 /// Internal — POST to Google's token endpoint to swap auth code for an

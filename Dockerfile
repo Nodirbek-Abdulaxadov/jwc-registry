@@ -10,9 +10,10 @@ RUN cargo build --release --bin jwc-registry
 # --- runtime ---
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates && rm -rf /var/lib/apt/lists/*
+    ca-certificates wget && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /app/target/release/jwc-registry /usr/local/bin/jwc-registry
+COPY static /app/static
 ENV REGISTRY_BIND=0.0.0.0:8080 \
     REGISTRY_STORAGE_PATH=/var/lib/jwc-registry/storage
 RUN mkdir -p /var/lib/jwc-registry/storage

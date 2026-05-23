@@ -8,6 +8,7 @@ use axum::routing::{delete, get, post};
 use axum::Router;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::{Any, CorsLayer};
+use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 use crate::auth::{self, AuthUser};
@@ -36,6 +37,11 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/pkg/:name/:version/download",
             get(packages::download_version),
         )
+        // Static frontend — served from `./static/` next to the binary in
+        // production (`COPY static /app/static` in the Dockerfile). API
+        // routes above match first; `fallback_service` only fires when no
+        // route matched, so `/api/...` is never shadowed.
+        .fallback_service(ServeDir::new("static"))
         .layer(DefaultBodyLimit::max(max_upload + 4096)) // +4kb for multipart overhead
         .layer(CompressionLayer::new())
         .layer(
