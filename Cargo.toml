@@ -1,0 +1,37 @@
+[package]
+name = "jwc-registry"
+version = "0.1.0"
+edition = "2021"
+description = "Package registry server for the JWC language"
+license = "MIT"
+
+[[bin]]
+name = "jwc-registry"
+path = "src/main.rs"
+
+[lib]
+name = "jwc_registry"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.7", features = ["macros", "multipart"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "serde"] }
+deadpool-postgres = "0.14"
+hex = "0.4"
+jsonwebtoken = "9"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tokio = { version = "1", features = ["full"] }
+tokio-postgres = { version = "0.7", features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "compression-gzip"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tempfile = "3"
+tower = { version = "0.4", features = ["util"] }

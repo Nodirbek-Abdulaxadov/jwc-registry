@@ -1,0 +1,6 @@
+/target
+/storage
+**/*.rs.bk
+.env
+.env.local
+Cargo.lock

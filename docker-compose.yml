@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: jwc
+      POSTGRES_PASSWORD: jwc
+      POSTGRES_DB: jwc_registry
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jwc -d jwc_registry"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  registry:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      REGISTRY_DB_URL: "postgres://jwc:jwc@postgres:5432/jwc_registry"
+      REGISTRY_GOOGLE_CLIENT_ID: "${REGISTRY_GOOGLE_CLIENT_ID:?set in .env}"
+      REGISTRY_GOOGLE_CLIENT_SECRET: "${REGISTRY_GOOGLE_CLIENT_SECRET:?set in .env}"
+      REGISTRY_GOOGLE_REDIRECT_URI: "${REGISTRY_GOOGLE_REDIRECT_URI:?set in .env}"
+      REGISTRY_JWT_SECRET: "${REGISTRY_JWT_SECRET:?set in .env}"
+      REGISTRY_STORAGE_PATH: "/var/lib/jwc-registry/storage"
+      RUST_LOG: "info,jwc_registry=debug"
+    ports:
+      - "8080:8080"
+    volumes:
+      - registry-blobs:/var/lib/jwc-registry/storage
+
+volumes:
+  pg-data:
+  registry-blobs:
