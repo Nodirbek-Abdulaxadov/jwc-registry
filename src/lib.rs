@@ -13,6 +13,7 @@
 //! - `api`      — axum Router composition + middleware.
 
 pub mod api;
+pub mod api_keys;
 pub mod auth;
 pub mod config;
 pub mod db;

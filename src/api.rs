@@ -12,8 +12,7 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 use crate::auth::{self, AuthUser};
-use crate::packages;
-use crate::AppState;
+use crate::{api_keys, packages, AppState};
 
 /// Build the full axum router. Wired separately from `main` so the
 /// integration tests can mount it against an arbitrary `AppState`.
@@ -25,6 +24,12 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/auth/google/login", get(auth::login))
         .route("/api/v1/auth/google/callback", get(auth::callback))
         .route("/api/v1/me", get(me))
+        // API keys
+        .route(
+            "/api/v1/keys",
+            get(api_keys::list_keys).post(api_keys::create_key),
+        )
+        .route("/api/v1/keys/:id", delete(api_keys::revoke_key))
         // Packages
         .route("/api/v1/pkg", get(packages::list_packages))
         .route("/api/v1/pkg/:name", get(packages::get_package))
@@ -92,14 +97,36 @@ impl FromRequestParts<AppState> for AuthUser {
         let token = header.strip_prefix("Bearer ").ok_or_else(|| {
             (
                 StatusCode::UNAUTHORIZED,
-                Json(serde_json::json!({ "error": "Authorization must be 'Bearer <jwt>'" })),
+                Json(serde_json::json!({
+                    "error": "Authorization must be 'Bearer <jwt-or-jwc_key>'"
+                })),
             )
         })?;
-        auth::verify_token(&state.config.jwt_secret, token).map_err(|e| {
-            (
-                StatusCode::UNAUTHORIZED,
-                Json(serde_json::json!({ "error": e.to_string() })),
-            )
-        })
+
+        // Dispatch on the token shape: API keys carry a `jwc_` prefix
+        // and are stored hashed in Postgres; everything else is treated
+        // as a session JWT and verified locally.
+        if api_keys::is_api_key(token) {
+            match api_keys::resolve_key(state, token).await {
+                Ok(Some(user)) => Ok(user),
+                Ok(None) => Err((
+                    StatusCode::UNAUTHORIZED,
+                    Json(serde_json::json!({
+                        "error": "API key invalid or revoked"
+                    })),
+                )),
+                Err(e) => Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({ "error": e.to_string() })),
+                )),
+            }
+        } else {
+            auth::verify_token(&state.config.jwt_secret, token).map_err(|e| {
+                (
+                    StatusCode::UNAUTHORIZED,
+                    Json(serde_json::json!({ "error": e.to_string() })),
+                )
+            })
+        }
     }
 }
