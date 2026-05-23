@@ -1,9 +1,10 @@
 # --- builder ---
-# Bumped from 1.83 → 1.85 because transitively-fetched crates (e.g.
-# time-core 0.1.8) require the `edition2024` Cargo feature, which only
-# stabilises in Rust 1.85+. Anything older fails the Cargo manifest
-# parse during `cargo build --release`.
-FROM rust:1.85-slim AS builder
+# Pinned at 1.90 — the transitive `time` / `time-core` / `time-macros`
+# crates demand rustc 1.88.0+, and `icu_provider` / `idna_adapter`
+# demand 1.86+. 1.83 fails the manifest parse (`edition2024` feature),
+# 1.85 fails the rustc-version check, 1.90 is the lowest common
+# stable that satisfies every transitive lower bound today.
+FROM rust:1.90-slim AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
