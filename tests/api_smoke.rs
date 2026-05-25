@@ -120,7 +120,6 @@ async fn me_with_garbage_bearer_is_unauthorized() {
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
 }
 
-
 #[tokio::test]
 async fn crates_alias_route_exists() {
     let tmp = tempfile::tempdir().unwrap();
