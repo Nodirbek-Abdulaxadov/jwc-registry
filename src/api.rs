@@ -33,6 +33,8 @@ pub fn router(state: AppState) -> Router {
         // Packages
         .route("/api/v1/pkg", get(packages::list_packages))
         .route("/api/v1/pkg/:name", get(packages::get_package))
+        // Backward-compatible alias used by older jwc CLI releases.
+        .route("/api/v1/crates/:name", get(packages::get_package))
         .route("/api/v1/pkg/:name/:version", post(packages::upload_version))
         .route(
             "/api/v1/pkg/:name/:version",
