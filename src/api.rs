@@ -44,6 +44,11 @@ pub fn router(state: AppState) -> Router {
             "/api/v1/pkg/:name/:version/download",
             get(packages::download_version),
         )
+        // Backward-compatible alias used by older jwc CLI releases.
+        .route(
+            "/api/v1/crates/:name/:version/download",
+            get(packages::download_version),
+        )
         // Static frontend — served from `./static/` next to the binary in
         // production (`COPY static /app/static` in the Dockerfile). API
         // routes above match first; `fallback_service` only fires when no
