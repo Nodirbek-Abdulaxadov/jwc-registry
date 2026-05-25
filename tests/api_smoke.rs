@@ -121,6 +121,21 @@ async fn me_with_garbage_bearer_is_unauthorized() {
 }
 
 #[tokio::test]
+async fn crates_alias_route_exists() {
+    let tmp = tempfile::tempdir().unwrap();
+    let app = router_for(tmp.path());
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/crates/qr-lite")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_ne!(resp.status(), StatusCode::NOT_FOUND);
+}
+#[tokio::test]
 async fn google_login_redirects_to_google() {
     let tmp = tempfile::tempdir().unwrap();
     let app = router_for(tmp.path());
